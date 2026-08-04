@@ -1,0 +1,54 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: material-consumption-training
+  annotations:
+    scenarios.ai.sap.com/description: "Training pipeline for material consumption prediction"
+    scenarios.ai.sap.com/name: "material-consumption"
+    executables.ai.sap.com/description: "Trains a Random Forest model to predict material consumption"
+    executables.ai.sap.com/name: "consumption-training"
+    artifacts.output.ai.sap.com/artifactNames: "trained-model"
+    artifacts.input.ai.sap.com/artifactNames: "historical-data"
+spec:
+  imagePullSecrets:
+    - name: docker-registry-secret
+  entrypoint: training-pipeline
+  arguments:
+    parameters:
+      - name: n_estimators
+        value: "200"
+      - name: max_depth
+        value: "8"
+      - name: test_size
+        value: "0.2"
+  templates:
+    - name: training-pipeline
+      metadata:
+        annotations:
+          ai.sap.com/resourcePlan: "starter"
+      inputs:
+        artifacts:
+          - name: historical-data
+            path: /app/data
+        parameters:
+          - name: n_estimators
+          - name: max_depth
+          - name: test_size
+      outputs:
+        artifacts:
+          - name: trained-model
+            path: /app/model
+            globalName: trained-model
+            archive:
+              none: {}
+      container:
+        image: "docker.io/cguevara962/consumption-train:latest"
+        imagePullPolicy: Always
+        command: ["python", "/app/train.py"]
+        env:
+          - name: N_ESTIMATORS
+            value: "{{inputs.parameters.n_estimators}}"
+          - name: MAX_DEPTH
+            value: "{{inputs.parameters.max_depth}}"
+          - name: TEST_SIZE
+            value: "{{inputs.parameters.test_size}}"

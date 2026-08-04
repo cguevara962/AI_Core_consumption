@@ -1,0 +1,22 @@
+# Claude Code internal files
+.claude/
+
+# CAP build output and local DB
+cap-app/gen/
+cap-app/db.sqlite
+cap-app/.env
+cap-app/node_modules/
+
+# Python artifacts
+src/data/
+__pycache__/
+*.pyc
+*.pkl
+*.egg-info/
+.venv/
+
+# Model output
+model/
+
+# Notebooks checkpoints
+notebooks/.ipynb_checkpoints/

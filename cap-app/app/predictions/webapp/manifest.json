@@ -1,0 +1,81 @@
+{
+  "_version": "1.59.0",
+  "sap.app": {
+    "id": "material.consumption.predictions",
+    "type": "application",
+    "i18n": "i18n/i18n.properties",
+    "title": "Material Predictions",
+    "applicationVersion": {
+      "version": "0.0.1"
+    },
+    "dataSources": {
+      "mainService": {
+        "uri": "/consumption/",
+        "type": "OData",
+        "settings": {
+          "odataVersion": "4.0"
+        }
+      }
+    }
+  },
+  "sap.ui": {
+    "technology": "UI5"
+  },
+  "sap.fiori": {
+    "registrationIds": [],
+    "archeType": "analytical"
+  },
+  "sap.ui5": {
+    "flexEnabled": true,
+    "dependencies": {
+      "minUI5Version": "1.120.0",
+      "libs": {
+        "sap.m": {},
+        "sap.ui.core": {},
+        "sap.fe.templates": {}
+      }
+    },
+    "models": {
+      "i18n": {
+        "type": "sap.ui.model.resource.ResourceModel",
+        "settings": {
+          "bundleName": "material.consumption.predictions.i18n.i18n"
+        }
+      },
+      "": {
+        "dataSource": "mainService",
+        "preload": true,
+        "settings": {
+          "synchronizationMode": "None",
+          "operationMode": "Server",
+          "autoExpandSelect": true,
+          "earlyRequests": true
+        }
+      }
+    },
+    "routing": {
+      "config": {},
+      "routes": [
+        {
+          "pattern": ":?query:",
+          "name": "MaterialPredictionsList",
+          "target": "MaterialPredictionsList"
+        }
+      ],
+      "targets": {
+        "MaterialPredictionsList": {
+          "type": "Component",
+          "id": "MaterialPredictionsList",
+          "name": "sap.fe.templates.ListReport",
+          "options": {
+            "settings": {
+              "entitySet": "MaterialPredictions",
+              "variantManagement": "Page",
+              "initialLoad": true
+            }
+          }
+        }
+      }
+    }
+  }
+}

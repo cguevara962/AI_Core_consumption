@@ -1,0 +1,35 @@
+{
+  "name": "material-consumption-ai",
+  "version": "1.0.0",
+  "description": "Material Consumption Prediction powered by SAP AI Core",
+  "scripts": {
+    "start": "cds-serve",
+    "dev": "cds watch",
+    "build": "cds build --production",
+    "deploy": "cds deploy --to sqlite"
+  },
+  "dependencies": {
+    "@sap/cds": "^7",
+    "express": "^4",
+    "axios": "^1",
+    "@sap/hana-client": "^2"
+  },
+  "devDependencies": {
+    "@sap/cds-dk": "^7",
+    "@sap/cds-fiori": "^1",
+    "sqlite3": "^5"
+  },
+  "cds": {
+    "requires": {
+      "db": {
+        "kind": "sqlite",
+        "credentials": {
+          "url": "db.sqlite"
+        }
+      }
+    },
+    "fiori": {
+      "lean_draft": true
+    }
+  }
+}
