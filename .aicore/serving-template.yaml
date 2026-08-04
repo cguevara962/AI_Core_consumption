@@ -14,11 +14,11 @@ metadata:
 spec:
   inputs:
     artifacts:
-      - name: trained-model
+      - name: trained_model
   imagePullSecrets:
     - name: docker-registry-secret
   template:
-    apiVersion: "serving.kubeflow.org/v1alpha2"
+    apiVersion: "serving.kserve.io/v1beta1"
     metadata:
       annotations: |
         autoscaling.knative.dev/metric: "concurrency"
@@ -26,16 +26,14 @@ spec:
       labels: |
         ai.sap.com/resourcePlan: "starter"
     spec: |
-      default:
-        predictor:
-          custom:
-            container:
-              name: kserve-container
-              image: docker.io/cguevara962/consumption-serve:latest
-              imagePullPolicy: Always
-              ports:
-                - containerPort: 9001
-                  protocol: TCP
-              env:
-                - name: STORAGE_URI
-                  value: "{{inputs.artifacts.trained-model}}"
+      predictor:
+        containers:
+          - name: kserve-container
+            image: docker.io/cguevara962/consumption-serve:latest
+            imagePullPolicy: Always
+            ports:
+              - containerPort: 9001
+                protocol: TCP
+            env:
+              - name: STORAGE_URI
+                value: "{{inputs.artifacts.trained_model}}"
