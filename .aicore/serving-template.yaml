@@ -8,23 +8,34 @@ metadata:
     scenarios.ai.sap.com/description: "Serving template for material consumption prediction"
     executables.ai.sap.com/name: "consumption-serving"
     executables.ai.sap.com/description: "Serves predictions for material consumption"
-    ai.sap.com/resourcePlan: "starter"
+  labels:
+    ai.sap.com/version: "0.0.1"
+    scenarios.ai.sap.com/id: "material-consumption"
 spec:
   inputs:
     artifacts:
       - name: trained-model
+  imagePullSecrets:
+    - name: docker-registry-secret
   template:
-    spec:
-      predictor:
-        imagePullSecrets:
-          - name: docker-registry-secret
-        containers:
-          - name: kserve-container
-            image: "docker.io/cguevara962/consumption-serve:latest"
-            imagePullPolicy: Always
-            ports:
-              - containerPort: 9001
-                protocol: TCP
-            env:
-              - name: STORAGE_URI
-                value: "{{inputs.artifacts.trained-model}}"
+    apiVersion: "serving.kubeflow.org/v1alpha2"
+    metadata:
+      annotations: |
+        autoscaling.knative.dev/metric: "concurrency"
+        autoscaling.knative.dev/target: "1"
+      labels: |
+        ai.sap.com/resourcePlan: "starter"
+    spec: |
+      default:
+        predictor:
+          custom:
+            container:
+              name: kserve-container
+              image: docker.io/cguevara962/consumption-serve:latest
+              imagePullPolicy: Always
+              ports:
+                - containerPort: 9001
+                  protocol: TCP
+              env:
+                - name: STORAGE_URI
+                  value: "{{inputs.artifacts.trained-model}}"
