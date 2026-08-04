@@ -3,30 +3,28 @@ kind: ServingTemplate
 metadata:
   name: material-consumption-serving
   annotations:
-    scenarios.ai.sap.com/description: "Serving template for material consumption prediction"
-    scenarios.ai.sap.com/name: "material-consumption"
     scenarios.ai.sap.com/id: "material-consumption"
-    executables.ai.sap.com/description: "Serves predictions for material consumption"
+    scenarios.ai.sap.com/name: "material-consumption"
+    scenarios.ai.sap.com/description: "Serving template for material consumption prediction"
     executables.ai.sap.com/name: "consumption-serving"
+    executables.ai.sap.com/description: "Serves predictions for material consumption"
 spec:
   inputs:
     artifacts:
       - name: trained-model
   template:
     metadata:
-      annotations:
-        ai.sap.com/resourcePlan: "starter"
-    spec:
-      predictor:
-        imagePullSecrets:
-          - name: docker-registry-secret
-        containers:
-          - name: kserve-container
-            image: "docker.io/cguevara962/consumption-serve:latest"
-            imagePullPolicy: Always
-            ports:
-              - containerPort: 9001
-                protocol: TCP
-            env:
-              - name: STORAGE_URI
-                value: "{{inputs.artifacts.trained-model}}"
+      annotations: '{"ai.sap.com/resourcePlan": "starter"}'
+    spec: |
+      {
+        "predictor": {
+          "imagePullSecrets": [{"name": "docker-registry-secret"}],
+          "containers": [{
+            "name": "kserve-container",
+            "image": "docker.io/cguevara962/consumption-serve:latest",
+            "imagePullPolicy": "Always",
+            "ports": [{"containerPort": 9001, "protocol": "TCP"}],
+            "env": [{"name": "STORAGE_URI", "value": "{{inputs.artifacts.trained-model}}"}]
+          }]
+        }
+      }
