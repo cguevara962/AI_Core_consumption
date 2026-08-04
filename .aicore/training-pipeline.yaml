@@ -33,7 +33,7 @@ spec:
       inputs:
         artifacts:
           - name: historical_data
-            path: /app/data
+            path: /app/data/consumption.csv
         parameters:
           - name: n_estimators
           - name: max_depth
