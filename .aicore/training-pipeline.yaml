@@ -10,6 +10,9 @@ metadata:
     executables.ai.sap.com/name: "consumption-training"
     artifacts.output.ai.sap.com/artifactNames: "trained_model"
     artifacts.input.ai.sap.com/artifactNames: "historical_data"
+  labels:
+    ai.sap.com/version: "0.0.1"
+    scenarios.ai.sap.com/id: "material-consumption"
 spec:
   imagePullSecrets:
     - name: docker-registry-secret
