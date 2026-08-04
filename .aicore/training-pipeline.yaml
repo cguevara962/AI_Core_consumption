@@ -5,6 +5,7 @@ metadata:
   annotations:
     scenarios.ai.sap.com/description: "Training pipeline for material consumption prediction"
     scenarios.ai.sap.com/name: "material-consumption"
+    scenarios.ai.sap.com/id: "material-consumption"
     executables.ai.sap.com/description: "Trains a Random Forest model to predict material consumption"
     executables.ai.sap.com/name: "consumption-training"
     artifacts.output.ai.sap.com/artifactNames: "trained-model"

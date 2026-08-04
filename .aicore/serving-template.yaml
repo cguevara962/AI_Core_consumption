@@ -5,6 +5,7 @@ metadata:
   annotations:
     scenarios.ai.sap.com/description: "Serving template for material consumption prediction"
     scenarios.ai.sap.com/name: "material-consumption"
+    scenarios.ai.sap.com/id: "material-consumption"
     executables.ai.sap.com/description: "Serves predictions for material consumption"
     executables.ai.sap.com/name: "consumption-serving"
 spec:
