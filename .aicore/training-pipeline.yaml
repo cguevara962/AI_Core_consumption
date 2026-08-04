@@ -8,8 +8,8 @@ metadata:
     scenarios.ai.sap.com/id: "material-consumption"
     executables.ai.sap.com/description: "Trains a Random Forest model to predict material consumption"
     executables.ai.sap.com/name: "consumption-training"
-    artifacts.output.ai.sap.com/artifactNames: "trained-model"
-    artifacts.input.ai.sap.com/artifactNames: "historical-data"
+    artifacts.output.ai.sap.com/artifactNames: "trained_model"
+    artifacts.input.ai.sap.com/artifactNames: "historical_data"
 spec:
   imagePullSecrets:
     - name: docker-registry-secret
@@ -29,7 +29,7 @@ spec:
           ai.sap.com/resourcePlan: "starter"
       inputs:
         artifacts:
-          - name: historical-data
+          - name: historical_data
             path: /app/data
         parameters:
           - name: n_estimators
@@ -37,9 +37,9 @@ spec:
           - name: test_size
       outputs:
         artifacts:
-          - name: trained-model
+          - name: trained_model
             path: /app/model
-            globalName: trained-model
+            globalName: trained_model
             archive:
               none: {}
       container:
