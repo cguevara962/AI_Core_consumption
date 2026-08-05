@@ -43,7 +43,7 @@ spec:
       outputs:
         artifacts:
           - name: trained_model
-            path: /app/model
+            path: /tmp/model
             globalName: trained_model
             archive:
               none: {}

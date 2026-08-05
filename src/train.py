@@ -12,7 +12,7 @@ from sklearn.metrics import mean_absolute_error, r2_score, mean_absolute_percent
 import joblib
 import boto3
 
-MODEL_DIR   = os.environ.get('MODEL_DIR',   '/app/model')
+MODEL_DIR   = os.environ.get('MODEL_DIR',   '/tmp/model')
 S3_BUCKET   = os.environ.get('S3_BUCKET',   'hcp-c096a718-bfa7-4194-858b-01b0ed9a3609')
 S3_KEY      = os.environ.get('S3_KEY',      'consumption-ai/data/consumption.csv')
 S3_ENDPOINT = os.environ.get('S3_ENDPOINT', 'https://s3.amazonaws.com')
