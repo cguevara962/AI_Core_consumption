@@ -9,7 +9,6 @@ metadata:
     executables.ai.sap.com/description: "Trains a Random Forest model to predict material consumption"
     executables.ai.sap.com/name: "consumption-training"
     artifacts.output.ai.sap.com/artifactNames: "trained_model"
-    artifacts.input.ai.sap.com/artifactNames: "historical_data"
   labels:
     ai.sap.com/version: "0.0.1"
     scenarios.ai.sap.com/id: "material-consumption"
@@ -25,19 +24,22 @@ spec:
         value: "8"
       - name: test_size
         value: "0.2"
+      - name: aws_access_key_id
+        value: ""
+      - name: aws_secret_access_key
+        value: ""
   templates:
     - name: training-pipeline
       metadata:
         annotations:
           ai.sap.com/resourcePlan: "starter"
       inputs:
-        artifacts:
-          - name: historical_data
-            path: /app/data/consumption.csv
         parameters:
           - name: n_estimators
           - name: max_depth
           - name: test_size
+          - name: aws_access_key_id
+          - name: aws_secret_access_key
       outputs:
         artifacts:
           - name: trained_model
@@ -56,3 +58,15 @@ spec:
             value: "{{inputs.parameters.max_depth}}"
           - name: TEST_SIZE
             value: "{{inputs.parameters.test_size}}"
+          - name: S3_BUCKET
+            value: "hcp-c096a718-bfa7-4194-858b-01b0ed9a3609"
+          - name: S3_KEY
+            value: "consumption-ai/data/consumption.csv"
+          - name: S3_ENDPOINT
+            value: "https://s3.amazonaws.com"
+          - name: S3_REGION
+            value: "us-east-1"
+          - name: AWS_ACCESS_KEY_ID
+            value: "{{inputs.parameters.aws_access_key_id}}"
+          - name: AWS_SECRET_ACCESS_KEY
+            value: "{{inputs.parameters.aws_secret_access_key}}"
