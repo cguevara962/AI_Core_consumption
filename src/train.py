@@ -31,8 +31,14 @@ MAX_DEPTH  = int(os.environ.get('MAX_DEPTH',    '8'))
 TEST_SIZE  = float(os.environ.get('TEST_SIZE',  '0.2'))
 
 try:
+    # Ensure output dir exists before anything else
+    os.makedirs(MODEL_DIR, exist_ok=True)
+    print(f"MODEL_DIR={MODEL_DIR} created/verified", flush=True)
     print(f"DATA_PATH={DATA_PATH}  exists={os.path.exists(DATA_PATH)}", flush=True)
-    print(f"Listing /app/data: {os.listdir('/app/data') if os.path.isdir('/app/data') else 'not a dir'}", flush=True)
+    try:
+        print(f"data dir contents: {os.listdir(os.path.dirname(DATA_PATH))}", flush=True)
+    except Exception as e:
+        print(f"cannot list data dir: {e}", flush=True)
 
     print(f"Loading data from {DATA_PATH} ...", flush=True)
     df = pd.read_csv(DATA_PATH, parse_dates=['date'])
@@ -100,7 +106,6 @@ try:
     print(f"  R²  : {r2:.4f}", flush=True)
 
     # ── Save ──────────────────────────────────────────────────────────────────────
-    os.makedirs(MODEL_DIR, exist_ok=True)
     joblib.dump(model, os.path.join(MODEL_DIR, 'model.pkl'))
     joblib.dump(le,    os.path.join(MODEL_DIR, 'label_encoder.pkl'))
 
