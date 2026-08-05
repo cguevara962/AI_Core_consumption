@@ -48,7 +48,8 @@ spec:
       container:
         image: "docker.io/cguevara962/consumption-train:latest"
         imagePullPolicy: Always
-        command: ["python", "/app/train.py"]
+        command: ["bash", "-c"]
+        args: ["ls -la /app/data/ 2>&1 && python /app/train.py 2>&1; echo EXIT_CODE=$?"]
         env:
           - name: N_ESTIMATORS
             value: "{{inputs.parameters.n_estimators}}"

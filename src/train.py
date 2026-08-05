@@ -16,9 +16,8 @@ Features used:
   - lag_28d            : consumption 28 days ago
   - rolling_4w_avg     : rolling avg of same weekday over last 4 weeks
 """
-import os, json
+import os, json, sys, traceback
 import pandas as pd
-import numpy as np
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
@@ -31,73 +30,92 @@ N_EST      = int(os.environ.get('N_ESTIMATORS', '200'))
 MAX_DEPTH  = int(os.environ.get('MAX_DEPTH',    '8'))
 TEST_SIZE  = float(os.environ.get('TEST_SIZE',  '0.2'))
 
-print(f"Loading data from {DATA_PATH} ...")
-df = pd.read_csv(DATA_PATH, parse_dates=['date'])
+try:
+    print(f"DATA_PATH={DATA_PATH}  exists={os.path.exists(DATA_PATH)}", flush=True)
+    print(f"Listing /app/data: {os.listdir('/app/data') if os.path.isdir('/app/data') else 'not a dir'}", flush=True)
 
-# ── Feature engineering ──────────────────────────────────────────────────────
-df = df.sort_values(['material_id', 'date']).reset_index(drop=True)
-df['day_of_week']  = df['date'].dt.dayofweek
-df['month']        = df['date'].dt.month
-df['week_of_year'] = df['date'].dt.isocalendar().week.astype(int)
-df['day_of_month'] = df['date'].dt.day
+    print(f"Loading data from {DATA_PATH} ...", flush=True)
+    df = pd.read_csv(DATA_PATH, parse_dates=['date'])
+    print(f"Loaded {len(df)} rows, columns: {list(df.columns)}", flush=True)
 
-# Lag features
-for lag in [7, 14, 28]:
-    df[f'lag_{lag}d'] = df.groupby('material_id')['quantity'].shift(lag)
+    # Normalize column names from CAP schema to snake_case
+    df = df.rename(columns={
+        'material_ID': 'material_id',
+        'isHoliday':   'is_holiday',
+        'isWeekend':   'is_weekend',
+        'isPayday':    'is_payday',
+    })
 
-# Rolling 4-week average of the same weekday
-df['rolling_4w_avg'] = (
-    df.groupby(['material_id', 'day_of_week'])['quantity']
-    .transform(lambda x: x.shift(1).rolling(4, min_periods=1).mean())
-)
+    # ── Feature engineering ──────────────────────────────────────────────────────
+    df = df.sort_values(['material_id', 'date']).reset_index(drop=True)
+    df['day_of_week']  = df['date'].dt.dayofweek
+    df['month']        = df['date'].dt.month
+    df['week_of_year'] = df['date'].dt.isocalendar().week.astype(int)
+    df['day_of_month'] = df['date'].dt.day
 
-df = df.dropna(subset=['lag_7d', 'lag_14d', 'lag_28d', 'rolling_4w_avg'])
+    # Lag features
+    for lag in [7, 14, 28]:
+        df[f'lag_{lag}d'] = df.groupby('material_id')['quantity'].shift(lag)
 
-# ── Encode material ───────────────────────────────────────────────────────────
-le = LabelEncoder()
-df['material_encoded'] = le.fit_transform(df['material_id'])
+    # Rolling 4-week average of the same weekday
+    df['rolling_4w_avg'] = (
+        df.groupby(['material_id', 'day_of_week'])['quantity']
+        .transform(lambda x: x.shift(1).rolling(4, min_periods=1).mean())
+    )
 
-FEATURES = [
-    'material_encoded', 'day_of_week', 'month', 'week_of_year',
-    'day_of_month', 'is_holiday', 'is_weekend', 'is_payday',
-    'lag_7d', 'lag_14d', 'lag_28d', 'rolling_4w_avg'
-]
-TARGET = 'quantity'
+    df = df.dropna(subset=['lag_7d', 'lag_14d', 'lag_28d', 'rolling_4w_avg'])
+    print(f"After dropna: {len(df)} rows", flush=True)
 
-X, y = df[FEATURES], df[TARGET]
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=TEST_SIZE, random_state=42, shuffle=False
-)
+    # ── Encode material ───────────────────────────────────────────────────────────
+    le = LabelEncoder()
+    df['material_encoded'] = le.fit_transform(df['material_id'])
 
-# ── Train ─────────────────────────────────────────────────────────────────────
-print(f"Training RandomForest  n_estimators={N_EST}  max_depth={MAX_DEPTH} ...")
-model = RandomForestRegressor(
-    n_estimators=N_EST, max_depth=MAX_DEPTH,
-    random_state=42, n_jobs=-1
-)
-model.fit(X_train, y_train)
+    FEATURES = [
+        'material_encoded', 'day_of_week', 'month', 'week_of_year',
+        'day_of_month', 'is_holiday', 'is_weekend', 'is_payday',
+        'lag_7d', 'lag_14d', 'lag_28d', 'rolling_4w_avg'
+    ]
+    TARGET = 'quantity'
 
-# ── Evaluate ──────────────────────────────────────────────────────────────────
-y_pred = model.predict(X_test)
-mae    = mean_absolute_error(y_test, y_pred)
-mape   = mean_absolute_percentage_error(y_test, y_pred) * 100
-r2     = r2_score(y_test, y_pred)
-print(f"  MAE : {mae:.4f}")
-print(f"  MAPE: {mape:.2f}%")
-print(f"  R²  : {r2:.4f}")
+    X, y = df[FEATURES], df[TARGET]
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=TEST_SIZE, random_state=42, shuffle=False
+    )
 
-# ── Save ──────────────────────────────────────────────────────────────────────
-os.makedirs(MODEL_DIR, exist_ok=True)
-joblib.dump(model, os.path.join(MODEL_DIR, 'model.pkl'))
-joblib.dump(le,    os.path.join(MODEL_DIR, 'label_encoder.pkl'))
+    # ── Train ─────────────────────────────────────────────────────────────────────
+    print(f"Training RandomForest  n_estimators={N_EST}  max_depth={MAX_DEPTH} ...", flush=True)
+    model = RandomForestRegressor(
+        n_estimators=N_EST, max_depth=MAX_DEPTH,
+        random_state=42, n_jobs=-1
+    )
+    model.fit(X_train, y_train)
 
-metadata = {
-    'mae': round(mae, 4), 'mape': round(mape, 2), 'r2': round(r2, 4),
-    'features': FEATURES, 'n_estimators': N_EST, 'max_depth': MAX_DEPTH,
-    'materials': le.classes_.tolist(),
-    'train_rows': len(X_train), 'test_rows': len(X_test)
-}
-with open(os.path.join(MODEL_DIR, 'metadata.json'), 'w') as f:
-    json.dump(metadata, f, indent=2)
+    # ── Evaluate ──────────────────────────────────────────────────────────────────
+    y_pred = model.predict(X_test)
+    mae    = mean_absolute_error(y_test, y_pred)
+    mape   = mean_absolute_percentage_error(y_test, y_pred) * 100
+    r2     = r2_score(y_test, y_pred)
+    print(f"  MAE : {mae:.4f}", flush=True)
+    print(f"  MAPE: {mape:.2f}%", flush=True)
+    print(f"  R²  : {r2:.4f}", flush=True)
 
-print(f"Model saved to {MODEL_DIR}")
+    # ── Save ──────────────────────────────────────────────────────────────────────
+    os.makedirs(MODEL_DIR, exist_ok=True)
+    joblib.dump(model, os.path.join(MODEL_DIR, 'model.pkl'))
+    joblib.dump(le,    os.path.join(MODEL_DIR, 'label_encoder.pkl'))
+
+    metadata = {
+        'mae': round(mae, 4), 'mape': round(mape, 2), 'r2': round(r2, 4),
+        'features': FEATURES, 'n_estimators': N_EST, 'max_depth': MAX_DEPTH,
+        'materials': list(le.classes_),
+        'train_rows': len(X_train), 'test_rows': len(X_test)
+    }
+    with open(os.path.join(MODEL_DIR, 'metadata.json'), 'w') as f:
+        json.dump(metadata, f, indent=2)
+
+    print(f"Model saved to {MODEL_DIR}", flush=True)
+
+except Exception:
+    traceback.print_exc(file=sys.stdout)
+    sys.stdout.flush()
+    sys.exit(1)
